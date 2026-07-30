@@ -2,6 +2,14 @@
 
 
 
+\## Note
+
+This project was built with AI-assisted development to accelerate learning and delivery.
+
+
+
+
+
 A full-stack project management and IT helpdesk system.
 
 
