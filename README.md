@@ -26,6 +26,10 @@ A modern web application for managing projects, tasks, and IT support tickets wi
 | Manager | manager@taskflow.app      | Manager@1234  |
 | Member  | alice@taskflow.app        | Member@1234   |
 
+## Note
+
+This project was built with AI-assisted development to accelerate learning and delivery.
+
 ## Quick Start
 
 ```bash
@@ -48,7 +52,3 @@ npm run dev
 
 # 4. Open the app
 # http://localhost:5173
-
-About This Project
-Developed with AI-assisted tooling to accelerate learning and delivery.
-Author: Nikhil Jindam
