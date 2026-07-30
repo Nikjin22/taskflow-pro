@@ -4,6 +4,10 @@
 
 A modern web application for managing projects, tasks, and IT support tickets with role-based access control.
 
+## Note
+
+This project was built with AI-assisted development to accelerate learning and delivery.
+
 ## Tech Stack
 
 **Frontend:** React 18 · Vite · TailwindCSS · Zustand · React Query  
@@ -25,10 +29,6 @@ A modern web application for managing projects, tasks, and IT support tickets wi
 | Admin   | admin@taskflow.app        | Admin@1234    |
 | Manager | manager@taskflow.app      | Manager@1234  |
 | Member  | alice@taskflow.app        | Member@1234   |
-
-## Note
-
-This project was built with AI-assisted development to accelerate learning and delivery.
 
 ## Quick Start
 
