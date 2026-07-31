@@ -416,7 +416,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className="label" style={{color: textMuted}}>Email *</label>
-                <input value={createForm.email} onChange={e => setCreateForm({...createForm, email: e.target.value})} type="email" placeholder="rahul@flamingopharma.com" className="input" style={{background: inputBg, color: textMain, borderColor: cardBorder}} />
+                <input value={createForm.email} onChange={e => setCreateForm({...createForm, email: e.target.value})} type="email" placeholder="rahul@TaskFlowpharma.com" className="input" style={{background: inputBg, color: textMain, borderColor: cardBorder}} />
               </div>
               <div>
                 <label className="label" style={{color: textMuted}}>Password *</label>

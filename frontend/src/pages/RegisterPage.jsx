@@ -35,7 +35,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await registerUser(name, email, password);
-      toast.success("Account created! Welcome to Flamingo TaskFlow.");
+      toast.success("Account created! Welcome to TaskFlow TaskFlow.");
       navigate("/dashboard");
     } catch (err) {
       toast.error(err.response?.data?.error || "Registration failed. Please try again.");
@@ -52,7 +52,7 @@ export default function RegisterPage() {
         </div>
         <div className="relative space-y-6">
           <h1 className="text-4xl font-bold leading-tight text-white">
-            Join Flamingo<br />
+            Join TaskFlow<br />
             <span style={{color: "rgba(255,255,255,0.85)"}}>TaskFlow Today</span>
           </h1>
           <p style={{color: "rgba(255,255,255,0.75)"}} className="text-lg leading-relaxed">
@@ -77,7 +77,7 @@ export default function RegisterPage() {
           </div>
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900">Create your account</h2>
-            <p className="text-slate-500 mt-2">Join Flamingo TaskFlow today</p>
+            <p className="text-slate-500 mt-2">Join TaskFlow TaskFlow today</p>
           </div>
           <div className="card p-8">
             <form onSubmit={onSubmit} className="space-y-4">
@@ -88,7 +88,7 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label className="label">Email Address</label>
-                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="you@flamingopharma.com" className="input" style={errors.email ? {borderColor: "#ef4444"} : {}} />
+                <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="you@TaskFlowpharma.com" className="input" style={errors.email ? {borderColor: "#ef4444"} : {}} />
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
               </div>
               <div>
