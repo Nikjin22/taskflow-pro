@@ -90,13 +90,7 @@ export default function LoginPage() {
                 {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><span>Sign In</span><ArrowRight className="w-4 h-4" /></>}
               </button>
             </form>
-            <div className="mt-5 p-4 rounded-xl" style={{background: "#eef2ff", border: "1px solid #c7d2fe"}}>
-              <p className="text-xs text-center font-medium mb-2" style={{color: BRAND}}>Demo Credentials</p>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-600 text-center">Admin: admin@taskflow.app / Admin@1234</p>
-                <p className="text-xs text-slate-600 text-center">Manager: manager@taskflow.app / Manager@1234</p>
-                <p className="text-xs text-slate-600 text-center">Member: member@taskflow.app / Member@1234</p>
-              </div>
+            
             </div>
           </div>
         </div>
