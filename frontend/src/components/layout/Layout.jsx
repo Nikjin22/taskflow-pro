@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { LayoutDashboard, FolderKanban, CheckSquare, Settings, LogOut, Menu, X, Shield, Sun, Moon, Ticket, ChevronRight } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
@@ -8,12 +8,28 @@ import api from "../../lib/api";
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
-  const { isDark, toggle } = useThemeStore();
+  const { isDark, toggle, init } = useThemeStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
+  useEffect(() => { init(); }, []);
+
   const isAdminOrManager = ["ADMIN", "MANAGER"].includes(user?.role);
   const isUser = user?.role === "USER";
+
+  const bgPrimary = isDark ? "#0f1117" : "#f4f6fb";
+  const sidebarBg = isDark ? "rgba(15,17,23,0.98)" : "white";
+  const sidebarBorder = isDark ? "rgba(255,255,255,0.06)" : "#e2e8f0";
+  const headerBg = isDark ? "rgba(15,17,23,0.85)" : "rgba(255,255,255,0.85)";
+  const textMain = isDark ? "white" : "#0f172a";
+  const textMuted = isDark ? "rgba(255,255,255,0.4)" : "#64748b";
+  const navActive = isDark ? { background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" } : { background: "#eef2ff", color: "#6366f1", border: "1px solid #c7d2fe" };
+  const navInactive = isDark ? { color: "rgba(255,255,255,0.4)" } : { color: "#64748b" };
+  const navHoverBg = isDark ? "rgba(255,255,255,0.05)" : "#f8fafc";
+  const toggleBg = isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9";
+  const toggleActiveBg = isDark ? "rgba(255,255,255,0.12)" : "white";
+  const roleColor = { ADMIN: "#f59e0b", MANAGER: "#6366f1", USER: "#10b981" };
+  const roleLabel = { ADMIN: "Administrator", MANAGER: "IT Manager", USER: "Team Member" };
 
   const { data: ticketsData } = useQuery({
     queryKey: ["my-assigned-tickets"],
@@ -35,60 +51,53 @@ export default function Layout() {
     { to: "/settings", icon: Settings, label: "Settings", show: true },
   ].filter(n => n.show);
 
-  const roleLabel = { ADMIN: "Administrator", MANAGER: "IT Manager", USER: "Team Member" };
-  const roleColor = { ADMIN: "#f59e0b", MANAGER: "#6366f1", USER: "#10b981" };
-
   const sidebarContent = (
-    <div style={{display: "flex", flexDirection: "column", height: "100%", background: "rgba(10,10,15,0.98)", backdropFilter: "blur(20px)", borderRight: "1px solid rgba(255,255,255,0.06)"}}>
-      <div style={{padding: "20px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)"}}>
+    <div style={{display: "flex", flexDirection: "column", height: "100%", background: sidebarBg, backdropFilter: "blur(20px)", borderRight: "1px solid " + sidebarBorder}}>
+      <div style={{padding: "18px 14px", borderBottom: "1px solid " + sidebarBorder}}>
         <div style={{display: "flex", alignItems: "center", gap: "10px"}}>
-          <div style={{width: "32px", height: "32px", borderRadius: "8px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "14px", color: "white", boxShadow: "0 4px 12px rgba(99,102,241,0.3)", flexShrink: 0}}>T</div>
-          <div>
-            <p style={{fontWeight: "700", fontSize: "14px", color: "white", margin: 0, letterSpacing: "-0.2px"}}>TaskFlow Pro</p>
-            <p style={{fontSize: "11px", color: "rgba(255,255,255,0.3)", margin: 0}}>Workspace</p>
+          <div style={{width: "30px", height: "30px", borderRadius: "8px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "800", fontSize: "13px", color: "white", flexShrink: 0, boxShadow: "0 4px 10px rgba(99,102,241,0.3)"}}>T</div>
+          <div style={{flex: 1, minWidth: 0}}>
+            <p style={{fontWeight: "700", fontSize: "13px", color: textMain, margin: 0}}>TaskFlow Pro</p>
+            <p style={{fontSize: "10px", color: textMuted, margin: 0}}>Workspace</p>
           </div>
-          <button className="lg:hidden ml-auto" onClick={() => setSidebarOpen(false)} style={{background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", padding: "4px"}}>
-            <X size={16} />
+          <button className="lg:hidden" onClick={() => setSidebarOpen(false)} style={{background: "none", border: "none", cursor: "pointer", color: textMuted, padding: "2px", display: "flex"}}>
+            <X size={15} />
           </button>
         </div>
       </div>
 
-      <nav style={{flex: 1, padding: "12px 8px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "2px"}}>
-        <p style={{fontSize: "10px", fontWeight: "600", color: "rgba(255,255,255,0.2)", textTransform: "uppercase", letterSpacing: "1px", padding: "8px 8px 4px", margin: 0}}>Navigation</p>
+      <nav style={{flex: 1, padding: "10px 8px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1px"}}>
+        <p style={{fontSize: "9px", fontWeight: "700", color: textMuted, textTransform: "uppercase", letterSpacing: "1px", padding: "6px 8px 4px", margin: 0}}>Menu</p>
         {navItems.map(({ to, icon: Icon, label, badge }) => {
           const isActive = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
           return (
             <NavLink key={to} to={to} onClick={() => setSidebarOpen(false)}
-              style={{display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", borderRadius: "10px", fontSize: "13px", fontWeight: "500", textDecoration: "none", transition: "all 0.15s ease", position: "relative",
-                background: isActive ? "rgba(99,102,241,0.15)" : "transparent",
-                color: isActive ? "#818cf8" : "rgba(255,255,255,0.5)",
-                border: isActive ? "1px solid rgba(99,102,241,0.25)" : "1px solid transparent"}}>
-              <Icon size={15} strokeWidth={isActive ? 2.5 : 2} style={{flexShrink: 0}} />
+              style={{display: "flex", alignItems: "center", gap: "9px", padding: "8px 10px", borderRadius: "9px", fontSize: "13px", fontWeight: "500", textDecoration: "none", transition: "all 0.15s ease", border: "1px solid transparent",
+                ...(isActive ? navActive : navInactive)}}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = navHoverBg; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}>
+              <Icon size={14} strokeWidth={isActive ? 2.5 : 2} style={{flexShrink: 0}} />
               <span style={{flex: 1}}>{label}</span>
-              {badge > 0 && (
-                <span style={{padding: "2px 7px", borderRadius: "999px", background: "#ef4444", color: "white", fontSize: "10px", fontWeight: "700", minWidth: "18px", textAlign: "center"}}>{badge}</span>
-              )}
-              {isActive && <ChevronRight size={12} style={{opacity: 0.5}} />}
+              {badge > 0 && <span style={{padding: "1px 6px", borderRadius: "999px", background: "#ef4444", color: "white", fontSize: "10px", fontWeight: "700"}}>{badge}</span>}
             </NavLink>
           );
         })}
       </nav>
 
-      <div style={{padding: "12px 8px", borderTop: "1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{padding: "10px 12px", borderRadius: "10px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: "10px", cursor: "default", position: "relative"}}
-          className="group">
-          <div style={{width: "32px", height: "32px", borderRadius: "8px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "13px", color: "white", flexShrink: 0}}>
+      <div style={{padding: "10px 8px", borderTop: "1px solid " + sidebarBorder}}>
+        <div style={{padding: "9px 10px", borderRadius: "9px", background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc", border: "1px solid " + sidebarBorder, display: "flex", alignItems: "center", gap: "9px"}}>
+          <div style={{width: "28px", height: "28px", borderRadius: "7px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "12px", color: "white", flexShrink: 0}}>
             {user?.name?.[0]?.toUpperCase()}
           </div>
           <div style={{flex: 1, minWidth: 0}}>
-            <p style={{fontSize: "13px", fontWeight: "600", color: "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{user?.name}</p>
-            <p style={{fontSize: "11px", margin: 0, fontWeight: "500", color: roleColor[user?.role] || "#10b981"}}>{roleLabel[user?.role] || "Team Member"}</p>
+            <p style={{fontSize: "12px", fontWeight: "600", color: textMain, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>{user?.name}</p>
+            <p style={{fontSize: "10px", margin: 0, fontWeight: "500", color: roleColor[user?.role] || "#10b981"}}>{roleLabel[user?.role]}</p>
           </div>
           <button onClick={logout} title="Sign out"
-            style={{background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.2)", padding: "4px", borderRadius: "6px", display: "flex", alignItems: "center", transition: "all 0.15s"}}
-            onMouseEnter={e => { e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.2)"; e.currentTarget.style.background = "none"; }}>
-            <LogOut size={14} />
+            style={{background: "none", border: "none", cursor: "pointer", color: textMuted, padding: "3px", borderRadius: "5px", display: "flex"}}
+            onMouseEnter={e => { e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = isDark ? "rgba(239,68,68,0.1)" : "#fee2e2"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = textMuted; e.currentTarget.style.background = "none"; }}>
+            <LogOut size={13} />
           </button>
         </div>
       </div>
@@ -96,58 +105,56 @@ export default function Layout() {
   );
 
   return (
-    <div style={{display: "flex", height: "100vh", overflow: "hidden", background: "#0a0a0f", backgroundImage: "radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.04) 0%, transparent 50%)"}}>
-      {sidebarOpen && <div style={{position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 20, backdropFilter: "blur(4px)"}} className="lg:hidden" onClick={() => setSidebarOpen(false)} />}
+    <div style={{display: "flex", height: "100vh", overflow: "hidden", background: bgPrimary, transition: "background 0.2s ease"}}>
+      {sidebarOpen && <div style={{position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 20, backdropFilter: "blur(4px)"}} className="lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      <aside style={{width: "220px", flexShrink: 0, position: "relative", zIndex: 30}} className="hidden lg:block">
-        {sidebarContent}
-      </aside>
+      <aside style={{width: "210px", flexShrink: 0}} className="hidden lg:block">{sidebarContent}</aside>
 
       {sidebarOpen && (
-        <aside style={{position: "fixed", inset: "0 auto 0 0", width: "220px", zIndex: 30}} className="lg:hidden">
-          {sidebarContent}
-        </aside>
+        <aside style={{position: "fixed", inset: "0 auto 0 0", width: "210px", zIndex: 30}} className="lg:hidden">{sidebarContent}</aside>
       )}
 
       <div style={{flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden"}}>
-        <header style={{height: "56px", display: "flex", alignItems: "center", padding: "0 20px", gap: "12px", flexShrink: 0, background: "rgba(10,10,15,0.8)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)"}}>
+        <header style={{height: "52px", display: "flex", alignItems: "center", padding: "0 18px", gap: "10px", flexShrink: 0, background: headerBg, backdropFilter: "blur(20px)", borderBottom: "1px solid " + sidebarBorder}}>
           <button className="lg:hidden" onClick={() => setSidebarOpen(true)}
-            style={{background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", padding: "6px", borderRadius: "8px", display: "flex", alignItems: "center"}}>
-            <Menu size={18} />
+            style={{background: "none", border: "none", cursor: "pointer", color: textMuted, padding: "5px", borderRadius: "7px", display: "flex"}}>
+            <Menu size={17} />
           </button>
-
           <div style={{flex: 1}} />
 
-          <div style={{display: "flex", alignItems: "center", gap: "1px", padding: "4px", borderRadius: "8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)"}}>
-            <button onClick={() => !isDark && toggle()}
-              style={{padding: "5px 10px", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "600", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.15s",
-                background: !isDark ? "rgba(255,255,255,0.1)" : "transparent",
-                color: !isDark ? "white" : "rgba(255,255,255,0.3)"}}>
-              <Sun size={12} /> Light
-            </button>
+          {/* Dark/Light Toggle */}
+          <div style={{display: "flex", alignItems: "center", padding: "3px", borderRadius: "8px", background: toggleBg, border: "1px solid " + sidebarBorder, gap: "2px"}}>
             <button onClick={() => isDark && toggle()}
-              style={{padding: "5px 10px", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "600", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.15s",
-                background: isDark ? "rgba(255,255,255,0.1)" : "transparent",
-                color: isDark ? "white" : "rgba(255,255,255,0.3)"}}>
-              <Moon size={12} /> Dark
+              style={{padding: "4px 10px", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "600", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.15s",
+                background: !isDark ? toggleActiveBg : "transparent",
+                color: !isDark ? "#6366f1" : textMuted,
+                boxShadow: !isDark ? "0 1px 3px rgba(0,0,0,0.1)" : "none"}}>
+              <Sun size={11} /> Light
+            </button>
+            <button onClick={() => !isDark && toggle()}
+              style={{padding: "4px 10px", borderRadius: "6px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "600", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.15s",
+                background: isDark ? toggleActiveBg : "transparent",
+                color: isDark ? "#818cf8" : textMuted,
+                boxShadow: isDark ? "0 1px 3px rgba(0,0,0,0.2)" : "none"}}>
+              <Moon size={11} /> Dark
             </button>
           </div>
 
           {isAdminOrManager && (
-            <span style={{padding: "4px 12px", borderRadius: "999px", fontSize: "11px", fontWeight: "700", background: "rgba(99,102,241,0.15)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)"}}>
+            <span style={{padding: "3px 10px", borderRadius: "999px", fontSize: "10px", fontWeight: "700", background: isDark ? "rgba(99,102,241,0.15)" : "#eef2ff", color: "#6366f1", border: "1px solid " + (isDark ? "rgba(99,102,241,0.25)" : "#c7d2fe")}}>
               {user?.role === "ADMIN" ? "Admin" : "Manager"}
             </span>
           )}
 
-          <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
-            <div style={{width: "30px", height: "30px", borderRadius: "8px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "12px", color: "white"}}>
+          <div style={{display: "flex", alignItems: "center", gap: "7px"}}>
+            <div style={{width: "28px", height: "28px", borderRadius: "7px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700", fontSize: "11px", color: "white"}}>
               {user?.name?.[0]?.toUpperCase()}
             </div>
-            <span style={{fontSize: "13px", fontWeight: "500", color: "rgba(255,255,255,0.7)"}} className="hidden sm:block">{user?.name}</span>
+            <span style={{fontSize: "13px", fontWeight: "500", color: textMain}} className="hidden sm:block">{user?.name}</span>
           </div>
         </header>
 
-        <main style={{flex: 1, overflow: "auto", padding: "24px"}}>
+        <main style={{flex: 1, overflow: "auto", padding: "20px"}}>
           <div style={{maxWidth: "1200px", margin: "0 auto"}}>
             <Outlet />
           </div>
