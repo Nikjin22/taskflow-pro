@@ -1,28 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
-import { useThemeStore } from "../store/themeStore";
 import api from "../lib/api";
-import { CheckSquare, FolderKanban, AlertTriangle, TrendingUp, Calendar, ArrowRight } from "lucide-react";
+import { CheckSquare, FolderKanban, AlertTriangle, TrendingUp, Calendar, ArrowRight, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { STATUS_CONFIG } from "../lib/constants";
 
-const BRAND = "#6366f1";
-
 export default function DashboardPage() {
   const { user } = useAuthStore();
-  const { isDark } = useThemeStore();
-
-  const cardBg = isDark ? "#1e293b" : "white";
-  const cardBorder = isDark ? "#334155" : "#e2e8f0";
-  const textMain = isDark ? "#f1f5f9" : "#0f172a";
-  const textMuted = isDark ? "#94a3b8" : "#64748b";
-  const subBg = isDark ? "#0f172a" : "#f8fafc";
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => api.get("/tasks/dashboard").then(r => r.data),
     retry: false,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
+    refetchInterval: 10000,
   });
 
   const greeting = () => {
@@ -33,137 +24,133 @@ export default function DashboardPage() {
   };
 
   const statusMap = {};
-  data?.stats?.tasksByStatus?.forEach(({ status, _count }) => {
-    statusMap[status] = _count.status;
-  });
-
+  data?.stats?.tasksByStatus?.forEach(({ status, _count }) => { statusMap[status] = _count.status; });
   const totalDone = statusMap["DONE"] || 0;
   const total = data?.stats?.totalTasks || 1;
   const completionRate = Math.round((totalDone / total) * 100);
 
   const statCards = [
-    { icon: FolderKanban, label: "Projects", value: data?.stats?.totalProjects ?? 0 },
-    { icon: CheckSquare, label: "Total Tasks", value: data?.stats?.totalTasks ?? 0 },
-    { icon: AlertTriangle, label: "Overdue", value: data?.stats?.overdueTasks ?? 0 },
-    { icon: TrendingUp, label: "Completion", value: (data ? completionRate : 0) + "%" },
+    { icon: FolderKanban, label: "Active Projects", value: data?.stats?.totalProjects ?? 0, color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
+    { icon: CheckSquare, label: "Total Tasks", value: data?.stats?.totalTasks ?? 0, color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
+    { icon: AlertTriangle, label: "Overdue", value: data?.stats?.overdueTasks ?? 0, color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
+    { icon: TrendingUp, label: "Completion Rate", value: (data ? completionRate : 0) + "%", color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+  ];
+
+  const statusDisplay = [
+    { key: "TODO", label: "To Do", color: "rgba(255,255,255,0.3)" },
+    { key: "IN_PROGRESS", label: "In Progress", color: "#6366f1" },
+    { key: "IN_REVIEW", label: "In Review", color: "#8b5cf6" },
+    { key: "DONE", label: "Done", color: "#10b981" },
   ];
 
   if (isLoading) return (
-    <div className="space-y-6">
-      <div className="h-10 rounded-xl w-72 animate-pulse" style={{background: cardBg}} />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-32 rounded-2xl animate-pulse" style={{background: cardBg}} />)}
+    <div style={{display: "flex", flexDirection: "column", gap: "24px"}}>
+      <div style={{height: "32px", width: "250px", borderRadius: "8px"}} className="skeleton" />
+      <div style={{display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px"}}>
+        {[...Array(4)].map((_, i) => <div key={i} style={{height: "120px", borderRadius: "16px"}} className="skeleton" />)}
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="text-center py-20">
-      <div className="text-5xl mb-4">⚠️</div>
-      <p className="font-semibold mb-2" style={{color: textMain}}>Session expired</p>
-      <p className="text-sm mb-6" style={{color: textMuted}}>Please log in again to continue.</p>
-      <Link to="/login" className="btn-primary">Go to Login</Link>
+    <div style={{textAlign: "center", padding: "80px 20px"}}>
+      <p style={{color: "rgba(255,255,255,0.3)", fontSize: "14px"}}>Session expired. <Link to="/login" style={{color: "#6366f1"}}>Sign in again</Link></p>
     </div>
   );
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div style={{display: "flex", flexDirection: "column", gap: "24px", animation: "fadeIn 0.3s ease"}}>
       <div>
-        <h1 className="text-2xl font-bold" style={{color: textMain}}>{greeting()}, {user?.name?.split(" ")[0]}! 👋</h1>
-        <p className="mt-1" style={{color: textMuted}}>Here is your Workspace overview for today.</p>
+        <h1 style={{fontSize: "24px", fontWeight: "700", color: "white", margin: "0 0 4px", letterSpacing: "-0.5px"}}>{greeting()}, {user?.name?.split(" ")[0]}! 👋</h1>
+        <p style={{fontSize: "14px", color: "rgba(255,255,255,0.4)", margin: 0}}>Here is your workspace overview for today.</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map(({icon: Icon, label, value}) => (
-          <div key={label} className="p-6 rounded-2xl" style={{background: cardBg, border: "1px solid " + cardBorder}}>
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium" style={{color: textMuted}}>{label}</p>
-                <p className="text-3xl font-bold mt-1" style={{color: textMain}}>{value}</p>
-              </div>
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{background: "rgba(232,56,45,0.1)"}}>
-                <Icon className="w-5 h-5" style={{color: BRAND}} strokeWidth={2} />
+      <div style={{display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px"}} className="lg:grid-cols-4">
+        {statCards.map(({ icon: Icon, label, value, color, bg }) => (
+          <div key={label} style={{padding: "20px", borderRadius: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", transition: "all 0.2s"}}
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+            <div style={{display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px"}}>
+              <div style={{width: "38px", height: "38px", borderRadius: "10px", background: bg, display: "flex", alignItems: "center", justifyContent: "center"}}>
+                <Icon size={18} color={color} strokeWidth={2} />
               </div>
             </div>
+            <p style={{fontSize: "28px", fontWeight: "700", color: "white", margin: "0 0 4px", letterSpacing: "-0.5px"}}>{value}</p>
+            <p style={{fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: 0, fontWeight: "500"}}>{label}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-2xl p-6" style={{background: cardBg, border: "1px solid " + cardBorder}}>
-        <h2 className="text-base font-semibold mb-4" style={{color: textMain}}>Task Overview</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(STATUS_CONFIG).map(([status, cfg]) => (
-            <div key={status} className="flex items-center gap-3 p-3 rounded-xl" style={{background: subBg}}>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm" style={{background: isDark ? "#334155" : "#f1f5f9"}}>
-                {cfg.icon}
-              </div>
-              <div>
-                <p className="text-xl font-bold" style={{color: textMain}}>{statusMap[status] || 0}</p>
-                <p className="text-xs" style={{color: textMuted}}>{cfg.label}</p>
+      <div style={{padding: "20px", borderRadius: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px"}}>
+          <h2 style={{fontSize: "14px", fontWeight: "600", color: "white", margin: 0}}>Task Overview</h2>
+          <span style={{fontSize: "12px", color: "rgba(255,255,255,0.4)"}}>{completionRate}% complete</span>
+        </div>
+        <div style={{display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "16px"}}>
+          {statusDisplay.map(({ key, label, color }) => (
+            <div key={key} style={{padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)"}}>
+              <p style={{fontSize: "22px", fontWeight: "700", color: "white", margin: "0 0 4px"}}>{statusMap[key] || 0}</p>
+              <div style={{display: "flex", alignItems: "center", gap: "5px"}}>
+                <div style={{width: "6px", height: "6px", borderRadius: "50%", background: color, flexShrink: 0}} />
+                <p style={{fontSize: "11px", color: "rgba(255,255,255,0.4)", margin: 0, fontWeight: "500"}}>{label}</p>
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-4">
-          <div className="flex justify-between text-xs mb-1.5" style={{color: textMuted}}>
-            <span>Overall progress</span>
-            <span>{completionRate}% complete</span>
-          </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{background: isDark ? "#334155" : "#e2e8f0"}}>
-            <div className="h-full rounded-full transition-all duration-1000" style={{width: completionRate + "%", background: BRAND}} />
-          </div>
+        <div style={{height: "6px", borderRadius: "999px", background: "rgba(255,255,255,0.06)", overflow: "hidden"}}>
+          <div style={{height: "100%", borderRadius: "999px", background: "linear-gradient(90deg, #6366f1, #8b5cf6, #10b981)", width: completionRate + "%", transition: "width 1s ease"}} />
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl p-6" style={{background: cardBg, border: "1px solid " + cardBorder}}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold flex items-center gap-2" style={{color: textMain}}>
-              <AlertTriangle className="w-4 h-4" style={{color: BRAND}} /> Overdue Tasks
+      <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px"}}>
+        <div style={{padding: "20px", borderRadius: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px"}}>
+            <h2 style={{fontSize: "14px", fontWeight: "600", color: "white", margin: 0, display: "flex", alignItems: "center", gap: "8px"}}>
+              <AlertTriangle size={14} color="#ef4444" /> Overdue Tasks
             </h2>
-            <Link to="/tasks" className="text-xs font-medium flex items-center gap-1" style={{color: BRAND}}>
-              View all <ArrowRight className="w-3 h-3" />
+            <Link to="/tasks" style={{fontSize: "12px", color: "#6366f1", display: "flex", alignItems: "center", gap: "4px", textDecoration: "none", fontWeight: "500"}}>
+              View all <ArrowRight size={12} />
             </Link>
           </div>
           {!data?.overdueTasks?.length ? (
-            <div className="text-center py-8">
-              <div className="text-3xl mb-2">🎉</div>
-              <p className="text-sm" style={{color: textMuted}}>No overdue tasks!</p>
+            <div style={{textAlign: "center", padding: "24px 0"}}>
+              <p style={{fontSize: "24px", margin: "0 0 8px"}}>🎉</p>
+              <p style={{fontSize: "13px", color: "rgba(255,255,255,0.3)", margin: 0}}>No overdue tasks!</p>
             </div>
-          ) : data.overdueTasks.slice(0, 5).map(task => (
-            <div key={task.id} className="flex items-center gap-3 py-3" style={{borderBottom: "1px solid " + cardBorder}}>
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background: BRAND}} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{color: textMain}}>{task.title}</p>
-                <p className="text-xs" style={{color: textMuted}}>{task.project?.name} · {task.assignee?.name || "Unassigned"}</p>
+          ) : data.overdueTasks.slice(0, 4).map(task => (
+            <div key={task.id} style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)"}}>
+              <div style={{width: "6px", height: "6px", borderRadius: "50%", background: "#ef4444", flexShrink: 0}} />
+              <div style={{flex: 1, minWidth: 0}}>
+                <p style={{fontSize: "13px", color: "white", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: "500"}}>{task.title}</p>
+                <p style={{fontSize: "11px", color: "rgba(255,255,255,0.3)", margin: 0}}>{task.project?.name} · {task.assignee?.name || "Unassigned"}</p>
               </div>
-              <span className="text-xs text-red-500 flex-shrink-0">{new Date(task.dueDate).toLocaleDateString("en-IN", {day:"numeric", month:"short"})}</span>
+              <span style={{fontSize: "11px", color: "#ef4444", flexShrink: 0, fontWeight: "500"}}>{new Date(task.dueDate).toLocaleDateString("en-IN", {day:"numeric", month:"short"})}</span>
             </div>
           ))}
         </div>
 
-        <div className="rounded-2xl p-6" style={{background: cardBg, border: "1px solid " + cardBorder}}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold flex items-center gap-2" style={{color: textMain}}>
-              <Calendar className="w-4 h-4" style={{color: BRAND}} /> Due This Week
+        <div style={{padding: "20px", borderRadius: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px"}}>
+            <h2 style={{fontSize: "14px", fontWeight: "600", color: "white", margin: 0, display: "flex", alignItems: "center", gap: "8px"}}>
+              <Calendar size={14} color="#6366f1" /> Due This Week
             </h2>
-            <Link to="/tasks" className="text-xs font-medium flex items-center gap-1" style={{color: BRAND}}>
-              View all <ArrowRight className="w-3 h-3" />
+            <Link to="/tasks" style={{fontSize: "12px", color: "#6366f1", display: "flex", alignItems: "center", gap: "4px", textDecoration: "none", fontWeight: "500"}}>
+              View all <ArrowRight size={12} />
             </Link>
           </div>
           {!data?.upcomingTasks?.length ? (
-            <div className="text-center py-8">
-              <div className="text-3xl mb-2">✨</div>
-              <p className="text-sm" style={{color: textMuted}}>Nothing due this week!</p>
+            <div style={{textAlign: "center", padding: "24px 0"}}>
+              <p style={{fontSize: "24px", margin: "0 0 8px"}}>✨</p>
+              <p style={{fontSize: "13px", color: "rgba(255,255,255,0.3)", margin: 0}}>Nothing due this week!</p>
             </div>
-          ) : data.upcomingTasks.slice(0, 5).map(task => (
-            <div key={task.id} className="flex items-center gap-3 py-3" style={{borderBottom: "1px solid " + cardBorder}}>
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background: "#10b981"}} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{color: textMain}}>{task.title}</p>
-                <p className="text-xs" style={{color: textMuted}}>{task.project?.name} · {task.assignee?.name || "Unassigned"}</p>
+          ) : data.upcomingTasks.slice(0, 4).map(task => (
+            <div key={task.id} style={{display: "flex", alignItems: "center", gap: "10px", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)"}}>
+              <div style={{width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", flexShrink: 0}} />
+              <div style={{flex: 1, minWidth: 0}}>
+                <p style={{fontSize: "13px", color: "white", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: "500"}}>{task.title}</p>
+                <p style={{fontSize: "11px", color: "rgba(255,255,255,0.3)", margin: 0}}>{task.project?.name} · {task.assignee?.name || "Unassigned"}</p>
               </div>
-              <span className="text-xs flex-shrink-0" style={{color: textMuted}}>{new Date(task.dueDate).toLocaleDateString("en-IN", {day:"numeric", month:"short"})}</span>
+              <span style={{fontSize: "11px", color: "rgba(255,255,255,0.4)", flexShrink: 0}}>{new Date(task.dueDate).toLocaleDateString("en-IN", {day:"numeric", month:"short"})}</span>
             </div>
           ))}
         </div>
